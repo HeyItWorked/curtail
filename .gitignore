@@ -1,0 +1,6 @@
+.stack-work/
+dist-newstyle/
+*.db
+*.db-shm
+*.db-wal
+.env
