@@ -1,48 +1,52 @@
 name: curtail
 version: 0.1.0.0
 ghc-options:
-  - -Wall
-  - -Werror
-  - -fno-warn-unused-do-bind
+  - -Wall        # enable all warnings
+  - -Werror      # treat warnings as errors — keeps code clean
+  - -fno-warn-unused-do-bind  # suppress "you ignored the result of this IO action" noise
+
+# The project is split into library + executable.
+# Reason: library exposes all logic as importable modules (testable later);
+# executable is just the thin entry point that wires things up.
 
 library:
   source-dirs: src
   exposed-modules:
-    - Api
-    - Config
-    - Db
-    - Handlers
-    - Types
+    - Api        # Servant route type definitions
+    - Config     # Env var config (PORT, DB_PATH, BASE_URL)
+    - Db         # Persistent schema + DB operations
+    - Handlers   # Request handlers + AppEnv
+    - Types      # Request/response data types + JSON instances
   dependencies:
     - base >= 4.16
-    - servant >= 0.19.1
+    - servant >= 0.19.1    # type-safe HTTP routing
     - servant-server >= 0.19.1
-    - warp
-    - persistent
-    - persistent-sqlite
-    - persistent-template
-    - monad-logger
-    - aeson
-    - text
-    - time
-    - random
-    - envy
-    - transformers
-    - mtl
-    - http-types
-    - wai
-    - exceptions
+    - warp                 # HTTP server backend
+    - persistent           # database ORM
+    - persistent-sqlite    # SQLite backend for persistent
+    - persistent-template  # Template Haskell to generate schema code
+    - monad-logger         # logging required by persistent's connection pool
+    - aeson                # JSON encode/decode
+    - text                 # efficient Text type (used instead of String)
+    - time                 # UTCTime for created_at timestamps
+    - random               # short code generation
+    - envy                 # type-safe env var parsing
+    - transformers         # monad transformers (ReaderT, etc.)
+    - mtl                  # MonadReader, MonadIO typeclasses
+    - http-types           # HTTP status codes
+    - wai                  # Web Application Interface (Warp uses this)
+    - exceptions           # MonadThrow/MonadCatch
 
 executables:
   curtail-exe:
     main: Main.hs
     source-dirs: src
     ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
+      - -threaded           # enable the multi-core GHC runtime
+      - -rtsopts            # allow passing RTS flags at runtime
+      - -with-rtsopts=-N    # use all available CPU cores by default
     dependencies:
-      - curtail
+      - curtail             # the library stanza above
       - base >= 4.16
       - servant
       - servant-server
