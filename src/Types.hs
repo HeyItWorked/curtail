@@ -63,3 +63,14 @@ instance ToJSON StatsResponse where
 instance FromJSON StatsResponse where
   parseJSON = genericParseJSON defaultOptions
     { fieldLabelModifier = camelTo2 '_' . drop 5 }
+
+-- ErrorResponse needs a manual instance because stripping "error" from
+-- "errorMessage" gives "message" — but the JSON key must be "error".
+-- Generic derivation breaks here so we write it explicitly.
+
+instance ToJSON ErrorResponse where
+  toJSON (ErrorResponse msg) = object ["error" .= msg]
+
+instance FromJSON ErrorResponse where
+  parseJSON = withObject "ErrorResponse" $ \v ->
+    ErrorResponse <$> v .: "error"
