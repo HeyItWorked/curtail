@@ -7,6 +7,7 @@
 
 module Types where
 
+import Data.Aeson
 import Data.Text (Text)
 import Data.Time (UTCTime)
 import GHC.Generics
@@ -34,3 +35,31 @@ data StatsResponse = StatsResponse
 data ErrorResponse = ErrorResponse
   { errorMessage :: Text
   } deriving (Generic, Show)
+
+-- Generic JSON instances
+-- Pattern: strip the Haskell field prefix, then convert camelCase to snake_case.
+-- e.g. responseShortUrl -> drop 8 -> ShortUrl -> camelTo2 '_' -> short_url
+
+instance ToJSON ShortenRequest where
+  toJSON = genericToJSON defaultOptions
+    { fieldLabelModifier = camelTo2 '_' . drop 7 }  -- drop "shorten"
+
+instance FromJSON ShortenRequest where
+  parseJSON = genericParseJSON defaultOptions
+    { fieldLabelModifier = camelTo2 '_' . drop 7 }
+
+instance ToJSON ShortenResponse where
+  toJSON = genericToJSON defaultOptions
+    { fieldLabelModifier = camelTo2 '_' . drop 8 }  -- drop "response"
+
+instance FromJSON ShortenResponse where
+  parseJSON = genericParseJSON defaultOptions
+    { fieldLabelModifier = camelTo2 '_' . drop 8 }
+
+instance ToJSON StatsResponse where
+  toJSON = genericToJSON defaultOptions
+    { fieldLabelModifier = camelTo2 '_' . drop 5 }  -- drop "stats"
+
+instance FromJSON StatsResponse where
+  parseJSON = genericParseJSON defaultOptions
+    { fieldLabelModifier = camelTo2 '_' . drop 5 }
