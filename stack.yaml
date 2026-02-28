@@ -1,0 +1,6 @@
+resolver: lts-21.25
+extra-deps:
+  - envy-2.1.0.0
+allow-newer: true
+packages:
+  - .
