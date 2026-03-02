@@ -47,6 +47,7 @@ executable curtail-exe
       Api
       Config
       Db
+      Handlers
       Types
       Paths_curtail
   hs-source-dirs:
