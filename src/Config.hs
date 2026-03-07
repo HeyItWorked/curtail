@@ -28,3 +28,12 @@ instance Envy.FromEnv Config where
   -- env "BASE_URL" (no Maybe) = required field, no default
   -- read as: "read BASE_URL from the environment — crash at startup if it is not set"
   <*> Envy.env "BASE_URL"
+
+-- | Load config from environment variables, crashing with a clear message
+-- if anything required is missing (i.e. BASE_URL is not set).
+getConfig :: IO Config
+getConfig = do
+  eitherConfig <- Envy.decodeEnv
+  case eitherConfig of
+    Left err  -> die $ "Configuration error: " ++ show err
+    Right cfg -> return cfg

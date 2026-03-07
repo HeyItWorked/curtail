@@ -4,3 +4,4 @@ dist-newstyle/
 *.db-shm
 *.db-wal
 .env
+*.cabal
