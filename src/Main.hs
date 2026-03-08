@@ -2,11 +2,17 @@
 
 module Main where
 
-import Config (getConfig, configDbPath)
+import Config (getConfig, configDbPath, configPort)
 import Database.Persist.Sql (runSqlPool)
 import Database.Persist.Sqlite (withSqlitePool)
 import Control.Monad.Logger (runStderrLoggingT)
 import Db (migrateAll)
+-- import the type and all fields/constructor
+import Handlers (AppEnv(..), createShortUrlHandler, redirectHandler, statsHandler)
+import Network.Wai.Handler.Warp (run)
+import Servant (serve, hoistServer)
+import Control.Monad.Reader (runReaderT)
+import Api (api)
 
 main :: IO ()
 main = do
@@ -23,3 +29,19 @@ main = do
     -- runSqlPool: runs the migration using a connection from the pool
     -- effect: CREATE TABLE IF NOT EXISTS for all tables in the schema        
         runSqlPool migrateAll pool
+        -- Bundle pool + config into AppEnv — the shared state all handlers can access.
+        -- In Python: env = {"db": pool, "config": cfg}
+        let env = AppEnv {appPool = pool, appConfig = cfg}
+
+        -- Join all three handlers in the same order as the routes in Api.hs.
+        -- In Python: routes = [create_short_url, redirect, stats]
+        let server = createShortUrlHandler :<|> redirectHandler :<|> statsHandler
+
+        -- hoistServer: inject `env` into every handler, stripping the ReaderT layer.
+        -- In Python: like calling functools.partial(handler, db=env.db, config=env.config)
+        -- for every handler at once — after this they're plain Handler, no AppEnv needed.
+        --
+        -- serve api ...: hand the wired-up routes to Servant to build a WAI Application.
+        -- run (configPort cfg) ...: Warp binds to the port and starts serving.
+        -- In Python: like app.run(port=cfg.port)
+        run (configPort cfg) $ serve api $ hoistServer api (\action -> runReaderT action env) server
