@@ -4,6 +4,10 @@ A type-safe URL shortener in Haskell.
 
 Built with [Servant](https://docs.servant.dev/) + SQLite via [persistent](https://hackage.haskell.org/package/persistent).
 
+**Live demo**: [curtail.fly.dev](https://curtail.fly.dev)
+
+![curtail screenshot](curtail-screenshot.png)
+
 ## API
 
 | Method | Route | Description |
@@ -20,3 +24,11 @@ stack run
 ```
 
 Optional env vars: `PORT` (default `8080`), `DB_PATH` (default `urls.db`).
+
+## Deployment
+
+Deployed on [Fly.io](https://fly.io) with a persistent volume for SQLite.
+
+```bash
+fly deploy
+```
