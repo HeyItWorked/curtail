@@ -45,4 +45,4 @@ main = do
         -- serve api ...: hand the wired-up routes to Servant to build a WAI Application.
         -- run (configPort cfg) ...: Warp binds to the port and starts serving.
         -- In Python: like app.run(port=cfg.port)
-        run (configPort cfg) $ serve api $ hoistServer api (\action -> runReaderT action env) server
+        liftIO $ run (configPort cfg) $ serve api $ hoistServer api (\action -> runReaderT action env) server
