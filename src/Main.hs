@@ -85,7 +85,7 @@ indexHtml = "\
   \<h1>curtail</h1>\
   \<p class=sub>paste a url, get a short link</p>\
   \<form id=f>\
-  \<input id=url type=url placeholder='https://...' required>\
+  \<input id=url type=text placeholder='https://example.com' required>\
   \<button type=submit>shorten</button>\
   \</form>\
   \<div id=result></div>\
@@ -93,7 +93,10 @@ indexHtml = "\
   \<script>\
   \document.getElementById('f').onsubmit=async e=>{\
   \e.preventDefault();\
-  \const r=await fetch('/api/shorten',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:document.getElementById('url').value})});\
+  \let u=document.getElementById('url').value.trim();\
+  \if(!/^https?:\\/\\//.test(u))u='https://'+u;\
+  \document.getElementById('url').value=u;\
+  \const r=await fetch('/api/shorten',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:u})});\
   \const d=await r.json();\
   \if(d.short_url){\
   \document.getElementById('result').style.display='block';\
