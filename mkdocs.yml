@@ -1,0 +1,36 @@
+site_name: Curtail — Learning Notes
+site_description: Haskell & Gleam concepts learned while building a URL shortener
+repo_url: https://github.com/HeyItWorked/curtail
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: deep purple
+    accent: amber
+  features:
+    - content.code.copy
+    - navigation.sections
+    - navigation.expand
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - attr_list
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Haskell:
+      - Servant & Type-Level Routing: haskell/servant-routing.md
+      - Persistent & SQLite: haskell/persistent-sqlite.md
+      - Applicative Style: haskell/applicative-style.md
+  - Gleam:
+      - OTP Actors & Supervisors: gleam/otp-actors.md
+      - BEAM Interop: gleam/beam-interop.md
+  - Architecture:
+      - How Curtail Works: architecture/overview.md

@@ -5,3 +5,4 @@ dist-newstyle/
 *.db-wal
 .env
 *.cabal
+site/
