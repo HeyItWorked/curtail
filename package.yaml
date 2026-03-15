@@ -26,6 +26,7 @@ library:
     - persistent-sqlite    # SQLite backend for persistent
     - persistent-template  # Template Haskell to generate schema code
     - monad-logger         # logging required by persistent's connection pool
+    - bytestring
     - aeson                # JSON encode/decode
     - text                 # efficient Text type (used instead of String)
     - time                 # UTCTime for created_at timestamps
@@ -64,4 +65,5 @@ executables:
       - mtl
       - http-types
       - wai
+      - bytestring
       - exceptions

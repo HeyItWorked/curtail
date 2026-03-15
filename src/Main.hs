@@ -4,12 +4,14 @@ module Main where
 
 import Config (getConfig, configDbPath, configPort)
 import Control.Monad.IO.Class (liftIO)
+import qualified Data.ByteString.Lazy as LBS
 import Database.Persist.Sql (runMigration, runSqlPool)
 import Database.Persist.Sqlite (withSqlitePool)
 import Control.Monad.Logger (runStderrLoggingT)
 import Db (migrateAll)
--- import the type and all fields/constructor
 import Handlers (AppEnv(..), createShortUrlHandler, redirectHandler, statsHandler)
+import Network.HTTP.Types (status200)
+import Network.Wai (Middleware, rawPathInfo, responseLBS)
 import Network.Wai.Handler.Warp (run)
 import Servant (serve, hoistServer, (:<|>)(..))
 import Control.Monad.Reader (runReaderT)
@@ -45,4 +47,60 @@ main = do
         -- serve api ...: hand the wired-up routes to Servant to build a WAI Application.
         -- run (configPort cfg) ...: Warp binds to the port and starts serving.
         -- In Python: like app.run(port=cfg.port)
-        liftIO $ run (configPort cfg) $ serve api $ hoistServer api (\action -> runReaderT action env) server
+        let app = landingPage $ serve api $ hoistServer api (\action -> runReaderT action env) server
+        liftIO $ run (configPort cfg) app
+
+landingPage :: Middleware
+landingPage next req respond
+  | rawPathInfo req == "/" = respond $ responseLBS status200
+      [("Content-Type", "text/html")] indexHtml
+  | otherwise = next req respond
+
+indexHtml :: LBS.ByteString
+indexHtml = "\
+  \<!DOCTYPE html>\
+  \<html lang=en>\
+  \<head>\
+  \<meta charset=utf-8>\
+  \<meta name=viewport content='width=device-width,initial-scale=1'>\
+  \<title>curtail</title>\
+  \<style>\
+  \*{margin:0;padding:0;box-sizing:border-box}\
+  \body{font-family:system-ui,sans-serif;background:#0a0a0a;color:#e0e0e0;display:flex;justify-content:center;align-items:center;min-height:100vh}\
+  \.wrap{width:100%;max-width:480px;padding:2rem}\
+  \h1{font-size:1.5rem;margin-bottom:.25rem}\
+  \p.sub{color:#888;font-size:.85rem;margin-bottom:2rem}\
+  \form{display:flex;gap:.5rem}\
+  \input{flex:1;padding:.6rem .8rem;border:1px solid #333;border-radius:6px;background:#141414;color:#e0e0e0;font-size:.9rem}\
+  \input:focus{outline:none;border-color:#7c3aed}\
+  \button{padding:.6rem 1.2rem;border:none;border-radius:6px;background:#7c3aed;color:#fff;font-size:.9rem;cursor:pointer}\
+  \button:hover{background:#6d28d9}\
+  \#result{margin-top:1.5rem;padding:1rem;border-radius:6px;background:#141414;display:none}\
+  \#result a{color:#a78bfa;word-break:break-all}\
+  \#result .stats{color:#888;font-size:.8rem;margin-top:.5rem}\
+  \</style>\
+  \</head>\
+  \<body>\
+  \<div class=wrap>\
+  \<h1>curtail</h1>\
+  \<p class=sub>paste a url, get a short link</p>\
+  \<form id=f>\
+  \<input id=url type=url placeholder='https://...' required>\
+  \<button type=submit>shorten</button>\
+  \</form>\
+  \<div id=result></div>\
+  \</div>\
+  \<script>\
+  \document.getElementById('f').onsubmit=async e=>{\
+  \e.preventDefault();\
+  \const r=await fetch('/api/shorten',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:document.getElementById('url').value})});\
+  \const d=await r.json();\
+  \if(d.short_url){\
+  \document.getElementById('result').style.display='block';\
+  \document.getElementById('result').innerHTML='<a href=\"'+d.short_url+'\" target=_blank>'+d.short_url+'</a><div class=stats>code: '+d.code+'</div>';\
+  \}else{\
+  \document.getElementById('result').style.display='block';\
+  \document.getElementById('result').innerHTML='<span style=color:#f87171>'+( d.error||'Something went wrong')+'</span>';\
+  \}};\
+  \</script>\
+  \</body></html>"
